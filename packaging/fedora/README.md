@@ -30,7 +30,7 @@ Include it in `%files`:
 %{_mandir}/man1/sentinel.1*
 ```
 
-Keep the generated Python file list from `%pyproject_save_files`; do not replace it with a hand-maintained list of package modules.
+Keep the generated Python file list from `%pyproject_save_files`; do not replace it with a hand-maintained list of package modules. Add a `%changelog` entry for each Fedora package release using the actual packager identity and the matching `Version-Release`. Do not use a placeholder name or email.
 
 ## Build and review checklist
 
