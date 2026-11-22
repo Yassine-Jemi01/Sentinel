@@ -18,6 +18,10 @@ jobs:
           command: |
             python -m compileall -q main.py sentinel tests
       - run:
+          name: Validate shell scripts
+          command: |
+            bash -n install.sh build.sh
+      - run:
           name: Run unit tests
           command: |
             python -W error::ResourceWarning -m unittest discover -s tests -v
