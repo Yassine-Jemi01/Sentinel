@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+.pytest_cache/
+build/
+dist/
+*.egg-info/
+.sentinel-dev-backup-*/

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinel-linux"
+version = "0.1.0"
+description = "Local-first Linux security events and system health monitor"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = ["textual>=1.0,<7"]
+
+[project.scripts]
+sentinel = "sentinel.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["sentinel*"]
