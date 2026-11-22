@@ -34,6 +34,19 @@ if [[ "$(uname -s)" != "Linux" ]]; then
     fail "Sentinel requires Linux."
 fi
 
+# Avoid installing a user-level command that shadows an RPM-managed command.
+# A confirmed unowned path is safe; any other RPM query failure is ambiguous.
+if command -v rpm >/dev/null 2>&1 && [[ -e /usr/bin/sentinel ]]; then
+    RPM_RESULT=""
+    RPM_STATUS=0
+    RPM_RESULT="$(LC_ALL=C rpm -qf --qf '%{NAME}' /usr/bin/sentinel 2>&1)" || RPM_STATUS=$?
+    if [[ "$RPM_STATUS" -eq 0 ]]; then
+        fail "/usr/bin/sentinel is managed by RPM package '$RPM_RESULT'. Update or remove it with your system package manager."
+    elif [[ "$RPM_STATUS" -ne 1 ]] || [[ "$RPM_RESULT" != *"is not owned by any package"* ]]; then
+        fail "Could not safely determine ownership of /usr/bin/sentinel. No installation was attempted."
+    fi
+fi
+
 command -v python3 >/dev/null 2>&1 || fail "Python 3 is required."
 command -v tar >/dev/null 2>&1 || fail "tar is required."
 
