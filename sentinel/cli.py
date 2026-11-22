@@ -22,7 +22,10 @@ def _version_key(value: str) -> tuple[int, ...]:
     """Parse a numeric release version for update comparison."""
     if not re.fullmatch(r"\d+(?:\.\d+)*", value.strip()):
         raise RuntimeError(f"Unsupported version format: {value!r}")
-    return tuple(int(part) for part in value.strip().split("."))
+    parts = [int(part) for part in value.strip().split(".")]
+    while len(parts) > 1 and parts[-1] == 0:
+        parts.pop()
+    return tuple(parts)
 
 
 def _get_remote_version() -> str:
