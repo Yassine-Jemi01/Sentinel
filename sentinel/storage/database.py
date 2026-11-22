@@ -10,16 +10,19 @@ from pathlib import Path
 from sentinel.core.models import Event, Finding
 
 
-def data_dir() -> Path:
+def data_dir(*, create: bool = True) -> Path:
+    """Return the Sentinel data directory, optionally creating it."""
     base = Path(
         os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")
     ) / "sentinel"
-    base.mkdir(parents=True, exist_ok=True)
+    if create:
+        base.mkdir(parents=True, exist_ok=True)
     return base
 
 
-def database_path() -> Path:
-    return data_dir() / "events.sqlite3"
+def database_path(*, create: bool = True) -> Path:
+    """Return the database path, optionally creating its parent directory."""
+    return data_dir(create=create) / "events.sqlite3"
 
 
 
