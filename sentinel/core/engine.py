@@ -5,11 +5,12 @@ from sentinel.core.explainer import explain
 from sentinel.sources.manager import collect_events
 from sentinel.storage.database import save_events, save_findings
 
+
 def analyze(limit: int | None = None, *, persist: bool = True):
     """Analyze system events, optionally persisting results locally."""
     config = load_config()
     events, source_status = collect_events(limit)
-    findings = [explain(event, config["language"]) for event in events]
+    findings = [explain(event) for event in events]
     findings = correlate(findings, int(config["correlation_window_seconds"]))
 
     if persist:
