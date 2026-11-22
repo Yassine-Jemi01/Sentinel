@@ -208,7 +208,7 @@ def main(argv=None) -> int:
         "-update",
         dest="update_flag",
         action="store_true",
-        help="check for and install updates",
+        help="update a GitHub-installed copy",
     )
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("check", help="show detected system and source capabilities")
@@ -218,7 +218,7 @@ def main(argv=None) -> int:
     export.add_argument("format", choices=("json", "html"))
     export.add_argument("output", nargs="?")
     sub.add_parser("version", help="show version")
-    sub.add_parser("update", help="check for and install updates")
+    sub.add_parser("update", help="update a GitHub-installed copy")
     args = parser.parse_args(argv)
 
     if args.update_flag and args.command is not None:
