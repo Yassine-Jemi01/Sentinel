@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
 import tomllib
@@ -28,6 +30,98 @@ def _version_key(value: str) -> tuple[int, ...]:
     return tuple(parts)
 
 
+def _rpm_package_owner(executable: str | None = None) -> str | None:
+    """Return the RPM package owning the executable, or None if unowned.
+
+    A missing rpm command means this is not an RPM-managed environment.
+    An installed rpm command must positively confirm that the executable is
+    unowned before the GitHub self-updater is allowed to run. Unexpected
+    query failures raise RuntimeError so package-managed installations fail
+    closed instead of being overwritten by the user-level installer.
+    """
+    rpm = shutil.which("rpm")
+    if not rpm:
+        return None
+
+    executable = executable or shutil.which(sys.argv[0]) or sys.argv[0]
+    path = Path(executable).expanduser()
+    try:
+        absolute = path.absolute()
+        resolved = absolute.resolve(strict=True)
+    except (OSError, RuntimeError) as exc:
+        raise RuntimeError(
+            f"Cannot safely resolve the running executable: {executable}"
+        ) from exc
+
+    if not resolved.is_file():
+        raise RuntimeError(
+            f"The running executable is not a regular file: {resolved}"
+        )
+
+    candidates = [absolute]
+    if resolved != absolute:
+        candidates.append(resolved)
+
+    environment = os.environ.copy()
+    environment["LC_ALL"] = "C"
+    owners: set[str] = set()
+
+    for candidate in candidates:
+        try:
+            result = subprocess.run(
+                [rpm, "-qf", "--qf", "%{NAME}", str(candidate)],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=5,
+                env=environment,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise RuntimeError("RPM ownership query could not be completed.") from exc
+
+        if result.returncode == 0:
+            package_name = result.stdout.strip()
+            if not package_name:
+                raise RuntimeError("RPM returned an empty package owner.")
+            owners.add(package_name)
+            continue
+
+        diagnostic = f"{result.stdout}\n{result.stderr}"
+        if (
+            result.returncode == 1
+            and "is not owned by any package" in diagnostic
+        ):
+            continue
+
+        detail = result.stderr.strip() or result.stdout.strip()
+        raise RuntimeError(
+            "RPM could not verify executable ownership"
+            + (f": {detail}" if detail else ".")
+        )
+
+    if len(owners) > 1:
+        raise RuntimeError(
+            "The executable paths resolve to different RPM package owners."
+        )
+    return next(iter(owners), None)
+
+
+def _package_manager_update_hint(package_name: str) -> str:
+    """Build a non-executing update hint for common RPM distributions."""
+    managers = (
+        ("dnf5", f"sudo dnf5 upgrade {package_name}"),
+        ("dnf", f"sudo dnf upgrade {package_name}"),
+        ("zypper", f"sudo zypper update {package_name}"),
+        ("yum", f"sudo yum update {package_name}"),
+    )
+    for command, hint in managers:
+        if shutil.which(command):
+            return hint
+    return (
+        f"Use your distribution's package manager to update {package_name}."
+    )
+
+
 def _get_remote_version() -> str:
     """Read the version declared by the latest source on the main branch."""
     request = Request(
@@ -45,9 +139,26 @@ def _get_remote_version() -> str:
 
 
 def update_from_github() -> int:
-    """Install Sentinel only when a newer version is available."""
-    print("Checking for Sentinel updates...")
+    """Update GitHub-installed copies without bypassing system package managers."""
+    try:
+        package_name = _rpm_package_owner()
+    except RuntimeError as exc:
+        print(
+            f"Cannot safely determine how Sentinel was installed: {exc}",
+            file=sys.stderr,
+        )
+        print(
+            "No update was attempted. Verify the RPM database and try again.",
+            file=sys.stderr,
+        )
+        return 1
 
+    if package_name:
+        print("Sentinel is managed by the system package manager.")
+        print(_package_manager_update_hint(package_name))
+        return 0
+
+    print("Checking for Sentinel updates...")
     try:
         remote_version = _get_remote_version()
         current_key = _version_key(__version__)
