@@ -1,0 +1,92 @@
+.TH SENTINEL 1 "November 2026" "Sentinel 0.1.0" "User Commands"
+.SH NAME
+sentinel \- local-first Linux security events and system health monitor
+.SH SYNOPSIS
+.B sentinel
+.RI [ command ]
+.br
+.B sentinel
+.B --help
+.br
+.B sentinel
+.B -update
+.SH DESCRIPTION
+.B sentinel
+collects events from available local logging sources, applies deterministic
+explanation rules, correlates repeated authentication events, stores history
+in a local SQLite database, and provides a terminal user interface.
+.PP
+Findings are heuristic explanations of log patterns. They are not proof of
+compromise and Sentinel is not an antivirus, firewall, SIEM, or intrusion
+prevention system.
+.SH COMMANDS
+.TP
+.B sentinel
+Start the Textual terminal interface.
+.TP
+.B sentinel check
+Print system, dependency, and source capability information as JSON.
+.TP
+.B sentinel events
+Analyze and print recent findings.
+.TP
+.B sentinel events -n LIMIT
+Analyze up to LIMIT events. The value is clamped to the range 1 through 2000.
+.TP
+.B sentinel export json [FILE]
+Write a JSON report. The default destination is ~/sentinel-report.json.
+.TP
+.B sentinel export html [FILE]
+Write a standalone HTML report. The default destination is ~/sentinel-report.html.
+.TP
+.B sentinel version
+Print the installed version.
+.TP
+.B sentinel update
+Update an installation made with the GitHub installer. RPM-managed installations
+are directed to the system package manager. If RPM ownership cannot be verified,
+the update is stopped.
+.TP
+.B sentinel --help
+Show command-line help.
+.SH DATA AND PRIVACY
+Sentinel processes events locally. It does not send telemetry, logs, reports,
+or configuration to a server. Event history is stored in a local SQLite
+database under the user's XDG data directory. Configuration is stored under
+the user's XDG config directory.
+.PP
+Logs may contain usernames, hostnames, IP addresses, command arguments, and
+file paths. Review and redact reports before sharing them.
+.SH SECURITY
+Run Sentinel as an ordinary user. It does not automatically request root
+privileges, modify source logs, change firewall or security policies, block
+processes, or automatically remediate findings.
+.PP
+Sentinel invokes fixed system utilities where needed and does not execute
+commands derived from log messages.
+.SH FILES
+.TP
+.I ~/.config/sentinel/config.json
+User configuration, unless XDG_CONFIG_HOME is set.
+.TP
+.I ~/.local/share/sentinel/events.sqlite3
+Local event history, unless XDG_DATA_HOME is set.
+.TP
+.I ~/.local/share/sentinel/venv
+Dedicated environment used by the GitHub installer, unless XDG_DATA_HOME is set.
+.SH ENVIRONMENT
+.TP
+.B XDG_CONFIG_HOME
+Override the base directory for user configuration.
+.TP
+.B XDG_DATA_HOME
+Override the base directory for application data.
+.SH SEE ALSO
+.BR journalctl (1),
+.BR dnf (8)
+.SH AUTHORS
+Sentinel contributors.
+.SH BUGS
+Report reproducible bugs at
+.UR https://github.com/Yassine-Jemi01/Sentinel/issues
+.UE .
