@@ -34,7 +34,7 @@ def check_integrity() -> str:
         "missing": Database file does not exist.
         "corrupt": SQLite reports malformed or invalid database content.
     """
-    path = database_path()
+    path = database_path(create=False)
 
     if not path.is_file():
         return "missing"
