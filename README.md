@@ -14,6 +14,7 @@ Sentinel is designed for visibility and investigation. It does not claim to dete
 - [Detection and explanation rules](#detection-and-explanation-rules)
 - [System information and health](#system-information-and-health)
 - [Requirements and compatibility](#requirements-and-compatibility)
+- [Install from Fedora RPM](#install-from-fedora-rpm)
 - [Install from GitHub](#install-from-github)
 - [Build from a source checkout](#build-from-a-source-checkout)
 - [Command-line reference](#command-line-reference)
@@ -120,16 +121,34 @@ These are best-effort snapshots. Missing kernel interfaces or permissions may ca
 ## Requirements and compatibility
 
 - Linux.
-- Python 3.12 or newer.
-- Python virtual-environment support (`venv`).
-- Network access for the initial package installation, because Textual is installed from Python package metadata.
-- `curl` or `wget` and `tar` for the GitHub installer.
+- Linux and Python 3.12 or newer.
+- Textual 1.x through 8.x. The Fedora RPM uses the distribution-provided Python and Textual packages.
+- Python virtual-environment support (`venv`) and network access are needed for the GitHub installer or source-checkout build, not for an RPM-managed installation.
+- `curl` or `wget` and `tar` are needed for the GitHub installer.
 
 The application does not require systemd, but journal collection specifically requires `journalctl`. Syslog collection depends on supported files being present and readable.
 
 The code includes init detection for systemd, OpenRC, runit, and s6. Other init systems are reported as `unknown`; that does not necessarily prevent the application from running.
 
 Compatibility depends on the logging configuration and permissions of each host. The project does not claim that every distribution release or desktop environment has been tested.
+
+## Install from Fedora RPM
+
+The Fedora package is being prepared for distribution review and is not yet available from the official Fedora repositories. Do not assume that `dnf install sentinel` is available until Fedora publishes the package.
+
+To install a locally built RPM for testing:
+
+```bash
+sudo dnf install ./sentinel-*.noarch.rpm
+```
+
+For an RPM-managed installation, update Sentinel through the system package manager:
+
+```bash
+sudo dnf upgrade sentinel
+```
+
+Remove the RPM with `sudo dnf remove sentinel`. These package-manager operations do not remove Sentinel's per-user configuration or event history.
 
 ## Install from GitHub
 
@@ -191,7 +210,7 @@ This is intended for a source checkout/development installation. The GitHub inst
 | `sentinel export html` | Write a standalone HTML report to `~/sentinel-report.html`. |
 | `sentinel export json /path/report.json` | Write a report to an explicit destination. |
 | `sentinel version` | Print the installed version. |
-| `sentinel update` | Download and run the installer from the GitHub `main` branch. |
+| `sentinel update` | Update a GitHub-installed copy; RPM-managed installs use the system package manager. |
 | `sentinel --help` | Show command help. |
 
 The `events` and `export` commands analyze the current available source batch and persist collected events/findings to the local database by default.
@@ -204,7 +223,9 @@ For an installation made with the GitHub installer, run:
 sentinel update
 ```
 
-The updater downloads the current `install.sh` from the repository's `main` branch and runs it with `--update`. It reinstalls the package in the dedicated user environment. It does not update a source checkout's `.venv`; use `git pull` and rerun `./build.sh` for that installation type.
+The updater downloads the current `install.sh` from the repository's `main` branch and runs it with `--update`. It first checks whether the running executable is owned by an RPM package. RPM-managed installations are never updated by this script; Sentinel prints a package-manager command instead. If RPM ownership cannot be verified, the update is stopped.
+
+A source-checkout installation is not updated by the GitHub installer. Use `git pull` and rerun `./build.sh` for that installation type.
 
 ## Terminal interface
 
@@ -287,7 +308,8 @@ The SQLite database uses a local file and WAL journaling. Existing database file
 - Source logs are read-only from Sentinel's perspective; Sentinel does not edit or delete them.
 - Sentinel does not change SELinux, AppArmor, firewall, or service policies.
 - Sentinel does not block processes or automatically remediate findings.
-- Sentinel never executes shell commands or code taken from log messages.
+- Sentinel invokes fixed system utilities with argument lists where needed (currently `journalctl` and, for RPM ownership checks, `rpm`). It never interprets log messages as shell commands or executable code.
+- The optional GitHub self-updater downloads and runs the project's installer only for a confirmed non-RPM user installation. It does not automatically elevate privileges.
 - Run Sentinel as an ordinary user. Some logs may be unavailable without additional permissions; Sentinel does not automatically elevate privileges.
 - Logs can contain usernames, hostnames, IP addresses, command arguments, and file paths. Review and redact exported reports before sharing them.
 
@@ -329,6 +351,12 @@ Install your distribution's Python venv support package, then rerun the installe
 
 ## Uninstall
 
+For an RPM installation, use the system package manager:
+
+```bash
+sudo dnf remove sentinel
+```
+
 For a GitHub installation, remove the application environment and command:
 
 ```bash
@@ -360,7 +388,7 @@ Run the end-user setup and validation workflow:
 ./build.sh
 ```
 
-The tests cover event normalization, rule matching and precedence, desktop/window-manager detection, correlation, SQLite deduplication and rollback, database integrity checks, and system snapshot structure.
+The tests cover event normalization, rule matching and precedence, desktop/window-manager detection, correlation, SQLite deduplication and rollback, read-only database integrity checks, safe HTML report escaping, CLI update safety, and system snapshot structure.
 
 ## License
 
