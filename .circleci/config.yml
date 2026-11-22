@@ -1,0 +1,36 @@
+version: 2.1
+
+jobs:
+  test:
+    parameters:
+      python-version:
+        type: string
+    docker:
+      - image: cimg/python:<< parameters.python-version >>
+    steps:
+      - checkout
+      - run:
+          name: Install package and dependencies
+          command: |
+            python -m pip install --disable-pip-version-check .
+      - run:
+          name: Compile Python sources
+          command: |
+            python -m compileall -q main.py sentinel tests
+      - run:
+          name: Run unit tests
+          command: |
+            python -W error::ResourceWarning -m unittest discover -s tests -v
+      - run:
+          name: Verify installed metadata
+          command: |
+            python -m pip check
+            sentinel version
+
+workflows:
+  test:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              python-version: ["3.12", "3.13"]
