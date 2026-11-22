@@ -139,7 +139,7 @@ The Fedora package is being prepared for distribution review and is not yet avai
 To install a locally built RPM for testing:
 
 ```bash
-sudo dnf install ./sentinel-*.noarch.rpm
+sudo dnf install ./path/to/sentinel.rpm
 ```
 
 For an RPM-managed installation, update Sentinel through the system package manager:
