@@ -615,12 +615,8 @@ def _desktop_severity(event: Event, original: str) -> str:
     return original
 
 
-def explain(event: Event, language: str = "en") -> Finding:
-    """Explain an event using deterministic English-only rules.
-
-    The language argument is retained for compatibility with existing callers.
-    Sentinel currently produces English explanations only.
-    """
+def explain(event: Event) -> Finding:
+    """Explain an event using deterministic English-only rules."""
 
     # System, authentication, security, kernel and hardware rules first.
     # Desktop rules must never hide a more important system finding.

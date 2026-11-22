@@ -42,12 +42,6 @@ class CoreTests(unittest.TestCase):
         self.assertTrue(finding.title.isascii())
         self.assertTrue(finding.summary.isascii())
 
-    def test_legacy_language_argument_stays_english(self):
-        event = Event("2026-01-01T00:00:00+00:00", "Failed password")
-        finding = explain(event, "ar")
-
-        self.assertEqual(finding.title, "Failed SSH sign-in")
-        self.assertTrue(finding.title.isascii())
     def test_correlation_counts_repeated_events(self):
         items = [explain(Event(f"2026-01-01T00:00:0{i}+00:00", "Failed password")) for i in range(5)]
         result = correlate(items, 300)
