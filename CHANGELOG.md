@@ -1,17 +1,19 @@
 # Changelog
 
-## 0.1.0
-
-- Added deterministic human-readable explanations and Arabic labels.
-- Added optional journald and syslog source support.
-- Added distribution and init-system detection.
-- Added repeated authentication-event correlation.
-- Added local SQLite history and deduplication.
-- Added CPU, memory, disk, and thermal snapshots.
-- Added JSON and HTML report export.
-- Added periodic TUI refresh and event details.
-- Separated developer generation from end-user setup.
+All notable changes to Sentinel are documented here.
 
 ## 0.1.0
 
-- Initial experimental dashboard, journal reader, basic analyzer, and SQLite storage.
+Initial public release.
+
+- Added a Textual terminal interface with Dashboard, Events, Export JSON, and About tabs.
+- Added local event collection from systemd journal and supported text syslog files.
+- Added deterministic English explanations for authentication, security policy, desktop, graphics, service, kernel, storage, hardware, network, and memory events.
+- Added repeated SSH and sudo authentication-event correlation.
+- Added distribution, kernel, architecture, and init-system detection.
+- Added CPU load, memory, root-filesystem, and thermal-zone health snapshots.
+- Added local SQLite event and finding history with deduplication and schema migration.
+- Added JSON and standalone HTML report export through the command line.
+- Added the GitHub installer and `sentinel update` command.
+- Added a source-checkout build script and automated unit tests.
+- Documented local data handling, privacy, security boundaries, compatibility, and known limitations.
